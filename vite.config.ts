@@ -14,4 +14,14 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Split large dependencies into separate chunks
+        manualChunks: {
+          recharts: ['recharts'],
+        },
+      },
+    },
+  },
 })

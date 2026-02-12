@@ -18,6 +18,9 @@ export function HomePage() {
   const { data, isLoading, isError, isSuccess, error, search } = useSearch();
   const { isFavorite, toggleFavorite } = useFavorites();
 
+  // Track the last query so the retry button works even on error
+  const [lastQuery, setLastQuery] = useState('');
+
   // Filter state
   const [filters, setFilters] = useState<FilterState>({
     priceTiers: [],
@@ -28,6 +31,7 @@ export function HomePage() {
   // Reset filters when a new search is performed
   const handleSearch = useCallback(
     (query: string) => {
+      setLastQuery(query);
       setFilters({ priceTiers: [], aestheticTags: [], affordableOnly: false });
       search(query);
     },
@@ -95,7 +99,7 @@ export function HomePage() {
 
       {/* ── Error ─────────────────────────────────────────────── */}
       {isError && error && (
-        <ErrorMessage message={error} onRetry={() => handleSearch(data?.searchedBrand.name || '')} />
+        <ErrorMessage message={error} onRetry={lastQuery ? () => handleSearch(lastQuery) : undefined} />
       )}
 
       {/* ── Results ───────────────────────────────────────────── */}
