@@ -15,11 +15,14 @@ import { applyFilters, collectTags } from '../utils/filters';
 import type { FilterState, BrandRecommendation } from '../types/index';
 
 export function HomePage() {
-  const { data, isLoading, isError, isSuccess, error, search } = useSearch();
+  const { data, isLoading, isError, isSuccess, error, errorCode, search } = useSearch();
   const { isFavorite, toggleFavorite } = useFavorites();
 
   // Track the last query so the retry button works even on error
   const [lastQuery, setLastQuery] = useState('');
+
+  // When the API returns low_confidence, prompt for a description
+  const promptForDescription = errorCode === 'low_confidence';
 
   // Filter state
   const [filters, setFilters] = useState<FilterState>({
@@ -30,10 +33,10 @@ export function HomePage() {
 
   // Reset filters when a new search is performed
   const handleSearch = useCallback(
-    (query: string) => {
+    (query: string, description?: string) => {
       setLastQuery(query);
       setFilters({ priceTiers: [], aestheticTags: [], affordableOnly: false });
-      search(query);
+      search(query, description);
     },
     [search]
   );
@@ -85,7 +88,7 @@ export function HomePage() {
           Enter a fashion brand you love and discover similar brands by
           aesthetic, price point, and style DNA.
         </p>
-        <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+        <SearchBar onSearch={handleSearch} isLoading={isLoading} promptForDescription={promptForDescription} />
       </div>
 
       {/* ── Loading skeletons ─────────────────────────────────── */}

@@ -25,13 +25,13 @@ export function useSearch() {
     errorCode: null,
   });
 
-  const search = useCallback(async (brandName: string) => {
+  const search = useCallback(async (brandName: string, brandDescription?: string) => {
     if (!brandName.trim()) return;
 
     setState({ status: 'loading', data: null, error: null, errorCode: null });
 
     try {
-      const data = await fetchRecommendations(brandName);
+      const data = await fetchRecommendations(brandName, brandDescription);
       setState({ status: 'success', data, error: null, errorCode: null });
     } catch (err) {
       if (err instanceof ApiRequestError) {

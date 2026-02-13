@@ -41,11 +41,13 @@ export interface BrandRecommendation {
 export interface RecommendationResponse {
   searchedBrand: BrandProfile;
   recommendations: BrandRecommendation[];
+  confidenceLevel?: 'high' | 'low_with_description';
 }
 
 /** Body of the POST request to /api/recommendations */
 export interface SearchRequest {
   brandName: string;
+  brandDescription?: string;
 }
 
 /** Error response from the API */

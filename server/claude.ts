@@ -29,9 +29,15 @@ function getClient(): Anthropic {
  * Returns the parsed JSON response or throws on failure.
  */
 export async function getRecommendations(
-  brandName: string
+  brandName: string,
+  brandDescription?: string
 ): Promise<RecommendationResponse> {
   const anthropic = getClient();
+
+  let userMessage = `Find fashion brands similar to: ${brandName}`;
+  if (brandDescription?.trim()) {
+    userMessage += `\n\nThe user describes this brand's aesthetic as: "${brandDescription.trim()}"`;
+  }
 
   const message = await anthropic.messages.create({
     model: 'claude-sonnet-4-5-20250929',
@@ -40,7 +46,7 @@ export async function getRecommendations(
     messages: [
       {
         role: 'user',
-        content: `Find fashion brands similar to: ${brandName}`,
+        content: userMessage,
       },
     ],
   });

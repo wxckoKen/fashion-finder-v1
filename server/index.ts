@@ -36,7 +36,7 @@ app.use('/api', apiLimiter);
 // ─── Routes ─────────────────────────────────────────────────────────
 
 app.post('/api/recommendations', async (req, res) => {
-  const { brandName } = req.body;
+  const { brandName, brandDescription } = req.body;
 
   if (!brandName || typeof brandName !== 'string' || !brandName.trim()) {
     res.status(400).json({
@@ -47,14 +47,14 @@ app.post('/api/recommendations', async (req, res) => {
   }
 
   try {
-    const data = await getRecommendations(brandName.trim());
+    const data = await getRecommendations(brandName.trim(), brandDescription);
     res.json(data);
   } catch (err: unknown) {
     const error = err as Error & { code?: string };
     console.error('Recommendation error:', error.message);
 
     // Known error codes from the Claude response
-    if (error.code === 'unknown_brand' || error.code === 'not_fashion') {
+    if (error.code === 'unknown_brand' || error.code === 'not_fashion' || error.code === 'low_confidence') {
       res.status(404).json({
         error: error.code,
         message: error.message,

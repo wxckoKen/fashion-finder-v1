@@ -18,7 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  const { brandName } = req.body;
+  const { brandName, brandDescription } = req.body;
 
   if (!brandName || typeof brandName !== 'string' || !brandName.trim()) {
     return res.status(400).json({
@@ -28,13 +28,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const data = await getRecommendations(brandName.trim());
+    const data = await getRecommendations(brandName.trim(), brandDescription);
     return res.status(200).json(data);
   } catch (err: unknown) {
     const error = err as Error & { code?: string };
     console.error('Recommendation error:', error.message);
 
-    if (error.code === 'unknown_brand' || error.code === 'not_fashion') {
+    if (error.code === 'unknown_brand' || error.code === 'not_fashion' || error.code === 'low_confidence') {
       return res.status(404).json({
         error: error.code,
         message: error.message,

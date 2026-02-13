@@ -26,12 +26,18 @@ export class ApiRequestError extends Error {
  * Fetch brand recommendations for a given brand name.
  */
 export async function fetchRecommendations(
-  brandName: string
+  brandName: string,
+  brandDescription?: string
 ): Promise<RecommendationResponse> {
+  const body: Record<string, string> = { brandName };
+  if (brandDescription?.trim()) {
+    body.brandDescription = brandDescription.trim();
+  }
+
   const res = await fetch(`${API_BASE}/recommendations`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ brandName }),
+    body: JSON.stringify(body),
   });
 
   // Try to parse the JSON body regardless of status code

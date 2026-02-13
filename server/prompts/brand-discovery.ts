@@ -79,11 +79,27 @@ When evaluating similarity, weigh these factors:
 - Cultural positioning (heritage, subculture, editorial presence)
 - Retail context (where the brand is typically found / sold)
 
+━━━ CONFIDENCE & HONESTY ━━━
+
+Before generating recommendations, assess how well you actually know the brand. Be honest — it's far better to ask for clarification than to guess wrong.
+
+- HIGH CONFIDENCE: You have strong knowledge of the brand's aesthetic, price point, and target audience. Proceed normally with recommendations.
+
+- LOW CONFIDENCE: You've heard of the brand but aren't sure about its current aesthetic, or you might be confusing it with another brand. In this case:
+  - If the user provided a description of the brand's aesthetic (see the user message), use that description as your primary signal for generating recommendations. Set "confidenceLevel" to "low_with_description" and proceed.
+  - If NO description was provided, return:
+    { "error": "low_confidence", "message": "I'm not confident I know <name> well enough to give accurate recommendations. Could you describe the brand's aesthetic or vibe so I can find better matches?" }
+
+IMPORTANT: Do NOT guess or hallucinate an aesthetic. If you're unsure whether a brand is womenswear or menswear, romantic or streetwear, affordable or luxury — that's low confidence. Ask rather than risk completely wrong recommendations.
+
+Add a "confidenceLevel" field to the top level of successful responses:
+- "high" = you know this brand well
+- "low_with_description" = you relied on the user's description
+
 ━━━ EDGE CASES ━━━
 
 - MISSPELLED NAMES: Correct the spelling and proceed normally. Set the "name" field to the correct brand name.
-- VERY NICHE / UNKNOWN BRANDS: Do your best. If you genuinely cannot identify the brand, return:
-  { "error": "unknown_brand", "message": "I couldn't identify a fashion brand called '<name>'. Please check the spelling or try a different brand." }
+- VERY NICHE / UNKNOWN BRANDS: If you genuinely cannot identify the brand AND no description was provided, return the low_confidence error above. If a description WAS provided, use it to generate recommendations even for brands you don't know.
 - NON-FASHION BRANDS (e.g., Apple, Nike for tech, etc.): If the brand has a fashion/lifestyle dimension (like Nike), treat it as fashion. If it's purely non-fashion, return:
   { "error": "not_fashion", "message": "'<name>' doesn't appear to be a fashion brand. Try searching for a clothing, footwear, or accessories brand." }
 

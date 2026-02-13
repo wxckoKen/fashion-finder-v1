@@ -1,18 +1,24 @@
 import { useState, type FormEvent } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface SearchBarProps {
-  onSearch: (query: string) => void;
+  onSearch: (query: string, description?: string) => void;
   isLoading: boolean;
+  promptForDescription?: boolean;
 }
 
-export function SearchBar({ onSearch, isLoading }: SearchBarProps) {
+export function SearchBar({ onSearch, isLoading, promptForDescription }: SearchBarProps) {
   const [query, setQuery] = useState('');
+  const [description, setDescription] = useState('');
+  const [showDescription, setShowDescription] = useState(false);
+
+  // Auto-expand the description field when the API asks for it
+  const shouldShowDescription = showDescription || promptForDescription;
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (query.trim() && !isLoading) {
-      onSearch(query.trim());
+      onSearch(query.trim(), description.trim() || undefined);
     }
   }
 
@@ -72,6 +78,41 @@ export function SearchBar({ onSearch, isLoading }: SearchBarProps) {
           )}
         </button>
       </div>
+
+      {/* Toggle description field */}
+      <div className="mt-2 flex justify-center">
+        <button
+          type="button"
+          onClick={() => setShowDescription((v) => !v)}
+          className="inline-flex items-center gap-1 text-sm text-stone-400 hover:text-accent dark:text-neutral-500 dark:hover:text-accent transition-colors"
+        >
+          {shouldShowDescription ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {shouldShowDescription ? 'Hide' : 'Describe'} the brand's vibe
+          <span className="text-xs text-stone-300 dark:text-neutral-600">(optional)</span>
+        </button>
+      </div>
+
+      {/* Optional description textarea */}
+      {shouldShowDescription && (
+        <div className="mt-2">
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder='e.g. "Romantic, feminine womenswear with a vintage European feel and flowy silhouettes"'
+            disabled={isLoading}
+            rows={2}
+            className="focus-ring w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 transition-all resize-none
+              focus:border-accent focus:ring-1 focus:ring-accent
+              dark:border-neutral-700 dark:bg-neutral-900 dark:text-stone-100 dark:placeholder:text-neutral-500 dark:focus:border-accent
+              disabled:opacity-60"
+          />
+          {promptForDescription && (
+            <p className="mt-1 text-center text-xs text-amber-600 dark:text-amber-400">
+              We're not confident we know this brand well. Add a description for better results!
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Suggestions */}
       <p className="mt-3 text-center text-sm text-stone-400 dark:text-neutral-500">
