@@ -51,7 +51,12 @@ export async function getRecommendations(
     throw new Error('No text response from Claude');
   }
 
-  const raw = textBlock.text.trim();
+  let raw = textBlock.text.trim();
+
+  // Strip markdown code fences if Claude wraps the JSON in ```json ... ```
+  if (raw.startsWith('```')) {
+    raw = raw.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+  }
 
   // Attempt to parse the JSON — Claude should return raw JSON per the prompt
   try {
