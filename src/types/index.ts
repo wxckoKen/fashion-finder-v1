@@ -44,10 +44,24 @@ export interface RecommendationResponse {
   confidenceLevel?: 'high' | 'low_with_description';
 }
 
+/** Response shape for the "find more" follow-up endpoint */
+export interface MoreRecommendationsResponse {
+  recommendations: BrandRecommendation[];
+}
+
 /** Body of the POST request to /api/recommendations */
 export interface SearchRequest {
   brandName: string;
   brandDescription?: string;
+}
+
+/** Body of the POST request to /api/recommendations/more */
+export interface MoreRequest {
+  brandName: string;
+  brandDescription?: string;
+  excludeBrands: string[];
+  pricePreference?: 'more_affordable' | 'same_price' | 'any';
+  refinementNote?: string;
 }
 
 /** Error response from the API */

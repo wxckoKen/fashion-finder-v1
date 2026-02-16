@@ -5,7 +5,7 @@
  * to handle errors, base URLs, and response parsing.
  */
 
-import type { RecommendationResponse, ApiError } from '../types/index.js';
+import type { RecommendationResponse, MoreRecommendationsResponse, MoreRequest, ApiError } from '../types/index.js';
 
 const API_BASE = '/api';
 
@@ -52,4 +52,29 @@ export async function fetchRecommendations(
   }
 
   return data as RecommendationResponse;
+}
+
+/**
+ * Fetch additional brand recommendations, excluding brands already shown.
+ */
+export async function fetchMoreRecommendations(
+  opts: MoreRequest
+): Promise<MoreRecommendationsResponse> {
+  const res = await fetch(`${API_BASE}/recommendations/more`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(opts),
+  });
+
+  const data: MoreRecommendationsResponse | ApiError = await res.json();
+
+  if (!res.ok) {
+    const err = data as ApiError;
+    throw new ApiRequestError(
+      err.error || 'unknown_error',
+      err.message || 'An unexpected error occurred.'
+    );
+  }
+
+  return data as MoreRecommendationsResponse;
 }

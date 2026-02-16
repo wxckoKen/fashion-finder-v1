@@ -9,7 +9,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import { getRecommendations } from './claude.js';
+import { getRecommendations, getMoreRecommendations } from './claude.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -62,6 +62,37 @@ app.post('/api/recommendations', async (req, res) => {
       return;
     }
 
+    res.status(500).json({
+      error: 'server_error',
+      message: 'Something went wrong generating recommendations. Please try again.',
+    });
+  }
+});
+
+app.post('/api/recommendations/more', async (req, res) => {
+  const { brandName, brandDescription, excludeBrands, pricePreference, refinementNote } = req.body;
+
+  if (!brandName || typeof brandName !== 'string' || !brandName.trim()) {
+    res.status(400).json({ error: 'invalid_request', message: 'Please provide a brand name.' });
+    return;
+  }
+  if (!Array.isArray(excludeBrands)) {
+    res.status(400).json({ error: 'invalid_request', message: 'excludeBrands must be an array.' });
+    return;
+  }
+
+  try {
+    const data = await getMoreRecommendations({
+      brandName: brandName.trim(),
+      brandDescription,
+      excludeBrands,
+      pricePreference,
+      refinementNote,
+    });
+    res.json(data);
+  } catch (err: unknown) {
+    const error = err as Error & { code?: string };
+    console.error('More recommendations error:', error.message);
     res.status(500).json({
       error: 'server_error',
       message: 'Something went wrong generating recommendations. Please try again.',

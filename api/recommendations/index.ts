@@ -6,7 +6,7 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getRecommendations } from '../server/claude.js';
+import { getRecommendations } from '../../server/claude.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only accept POST requests

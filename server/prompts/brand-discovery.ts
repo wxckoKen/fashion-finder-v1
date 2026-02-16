@@ -103,6 +103,27 @@ Add a "confidenceLevel" field to the top level of successful responses:
 - NON-FASHION BRANDS (e.g., Apple, Nike for tech, etc.): If the brand has a fashion/lifestyle dimension (like Nike), treat it as fashion. If it's purely non-fashion, return:
   { "error": "not_fashion", "message": "'<name>' doesn't appear to be a fashion brand. Try searching for a clothing, footwear, or accessories brand." }
 
+━━━ FOLLOW-UP REQUESTS ━━━
+
+Sometimes the user will ask for MORE brands similar to one they already searched. In this case the user message will include:
+- The original brand name
+- A list of brands to EXCLUDE (already shown to the user)
+- Optionally, a price preference: "more affordable", "same price range", or "any price"
+- Optionally, a refinement note (e.g. "more minimal", "sustainable materials", "available in the US")
+
+For follow-up requests:
+- Return ONLY the "recommendations" array (no "searchedBrand" — the user already has it).
+- Return exactly 6 new brands.
+- NEVER include any brand from the exclusion list.
+- Respect the price preference if provided.
+- Incorporate the refinement note into your similarity evaluation.
+- Use the same recommendation object schema as above.
+
+Follow-up response schema:
+{
+  "recommendations": [ ... ]
+}
+
 ━━━ IMPORTANT ━━━
 
 Return ONLY the raw JSON object. No markdown formatting. No code blocks. No explanatory text before or after. Just the JSON.`;

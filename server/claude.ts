@@ -7,7 +7,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { BRAND_DISCOVERY_PROMPT } from './prompts/brand-discovery.js';
-import type { RecommendationResponse } from '../src/types/index.js';
+import type { RecommendationResponse, BrandRecommendation, MoreRecommendationsResponse } from '../src/types/index.js';
 
 // Lazy-initialize the client so the module can be imported
 // even when the env var isn't set (e.g., during build).
@@ -80,6 +80,73 @@ export async function getRecommendations(
     return parsed as RecommendationResponse;
   } catch (e) {
     // If parse fails, the response wasn't valid JSON
+    if (e instanceof SyntaxError) {
+      console.error('Claude returned invalid JSON:', raw.slice(0, 200));
+      throw new Error('Failed to parse recommendation data');
+    }
+    throw e;
+  }
+}
+
+/**
+ * Ask Claude for additional brand recommendations, excluding ones already shown.
+ */
+export async function getMoreRecommendations(opts: {
+  brandName: string;
+  brandDescription?: string;
+  excludeBrands: string[];
+  pricePreference?: 'more_affordable' | 'same_price' | 'any';
+  refinementNote?: string;
+}): Promise<MoreRecommendationsResponse> {
+  const anthropic = getClient();
+
+  const lines = [`Find more fashion brands similar to: ${opts.brandName}`];
+
+  if (opts.brandDescription?.trim()) {
+    lines.push(`The user describes this brand's aesthetic as: "${opts.brandDescription.trim()}"`);
+  }
+
+  lines.push(`\nDo NOT include any of these brands (already shown): ${opts.excludeBrands.join(', ')}`);
+
+  if (opts.pricePreference && opts.pricePreference !== 'any') {
+    const label = opts.pricePreference === 'more_affordable'
+      ? 'Show me more affordable alternatives'
+      : 'Show me brands in a similar price range';
+    lines.push(`Price preference: ${label}`);
+  }
+
+  if (opts.refinementNote?.trim()) {
+    lines.push(`The user is specifically looking for: "${opts.refinementNote.trim()}"`);
+  }
+
+  const message = await anthropic.messages.create({
+    model: 'claude-sonnet-4-5-20250929',
+    max_tokens: 4096,
+    system: BRAND_DISCOVERY_PROMPT,
+    messages: [{ role: 'user', content: lines.join('\n') }],
+  });
+
+  const textBlock = message.content.find((block) => block.type === 'text');
+  if (!textBlock || textBlock.type !== 'text') {
+    throw new Error('No text response from Claude');
+  }
+
+  let raw = textBlock.text.trim();
+  if (raw.startsWith('```')) {
+    raw = raw.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+
+    if (parsed.error) {
+      const err = new Error(parsed.message || 'Unknown error') as Error & { code: string };
+      err.code = parsed.error;
+      throw err;
+    }
+
+    return { recommendations: parsed.recommendations as BrandRecommendation[] };
+  } catch (e) {
     if (e instanceof SyntaxError) {
       console.error('Claude returned invalid JSON:', raw.slice(0, 200));
       throw new Error('Failed to parse recommendation data');
